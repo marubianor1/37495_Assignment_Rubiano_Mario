@@ -1,6 +1,9 @@
 library(MASS)
 library(car)
 library(emmeans)
+library(nortest)
+library(lawstat)
+library(DescTools)
 
 alpha <- 0.05
 show_plots <- TRUE
@@ -75,20 +78,27 @@ print(shapiro.test(sample(boot_means, 50)))
 cat("\nQuestion 2(c): one-way ANOVA\n")
 fit <- aov(strength ~ run, data = insulation)
 print(summary(fit))
+insulation$resid <- resid(fit)
 
 cat("\nQuestion 2(d): residual checks for original ANOVA\n")
-print(shapiro.test(residuals(fit)))
-print(leveneTest(strength ~ run, data = insulation, center = median))
+cat("\nNormality tests\n")
+print(shapiro.test(insulation$resid))
+print(nortest::cvm.test(insulation$resid))
+print(nortest::ad.test(insulation$resid))
+cat("\nLevene test of equal variances\n")
+print(lawstat::levene.test(insulation$resid, insulation$run,
+                           location = "median",
+                           correction.method = "zero.correction"))
 
 if (show_plots) {
-  qqnorm(residuals(fit), main = "Original ANOVA residual Q-Q plot")
-  qqline(residuals(fit), col = "red", lwd = 2)
+  qqnorm(insulation$resid, main = "Original ANOVA residual Q-Q plot")
+  qqline(insulation$resid, col = "red", lwd = 2)
 }
 
 if (save_plots) {
   png("figures/q2d_original_residual_qq.png", width = 900, height = 650)
-  qqnorm(residuals(fit), main = "Original ANOVA residual Q-Q plot")
-  qqline(residuals(fit), col = "red", lwd = 2)
+  qqnorm(insulation$resid, main = "Original ANOVA residual Q-Q plot")
+  qqline(insulation$resid, col = "red", lwd = 2)
   dev.off()
 }
 
@@ -112,11 +122,7 @@ cat("\nQuestion 2(e): Box-Cox transformation\n")
 bc_grid <- boxcox(fit, lambda = seq(-3, 3, length = 600), plotit = FALSE)
 lambda <- bc_grid$x[which.max(bc_grid$y)]
 cat("Optimal lambda:", lambda, "\n")
-insulation$strength_bc <- if (abs(lambda) < 1e-8) {
-  log(insulation$strength)
-} else {
-  (insulation$strength^lambda - 1) / lambda
-}
+insulation$strength_bc <- DescTools::BoxCox(insulation$strength, lambda)
 
 if (show_plots) {
   boxcox(fit, lambda = seq(-3, 3, length = 600))
@@ -135,18 +141,25 @@ if (save_plots) {
 cat("\nQuestion 2(f): ANOVA and residual checks after Box-Cox transform\n")
 fit_bc <- aov(strength_bc ~ run, data = insulation)
 print(summary(fit_bc))
-print(shapiro.test(residuals(fit_bc)))
-print(leveneTest(strength_bc ~ run, data = insulation, center = median))
+insulation$resid_bc <- resid(fit_bc)
+cat("\nNormality tests\n")
+print(shapiro.test(insulation$resid_bc))
+print(nortest::cvm.test(insulation$resid_bc))
+print(nortest::ad.test(insulation$resid_bc))
+cat("\nLevene test of equal variances\n")
+print(lawstat::levene.test(insulation$resid_bc, insulation$run,
+                           location = "median",
+                           correction.method = "zero.correction"))
 
 if (show_plots) {
-  qqnorm(residuals(fit_bc), main = "Box-Cox ANOVA residual Q-Q plot")
-  qqline(residuals(fit_bc), col = "red", lwd = 2)
+  qqnorm(insulation$resid_bc, main = "Box-Cox ANOVA residual Q-Q plot")
+  qqline(insulation$resid_bc, col = "red", lwd = 2)
 }
 
 if (save_plots) {
   png("figures/q2f_boxcox_residual_qq.png", width = 900, height = 650)
-  qqnorm(residuals(fit_bc), main = "Box-Cox ANOVA residual Q-Q plot")
-  qqline(residuals(fit_bc), col = "red", lwd = 2)
+  qqnorm(insulation$resid_bc, main = "Box-Cox ANOVA residual Q-Q plot")
+  qqline(insulation$resid_bc, col = "red", lwd = 2)
   dev.off()
 }
 
@@ -174,7 +187,8 @@ contrast_list <- list(
   "avg_run124_vs_avg_run35" = c(1 / 3, 1 / 3, -1 / 2, 1 / 3, -1 / 2)
 )
 scheffe_results <- contrast(run_means, method = contrast_list, adjust = "scheffe")
-print(summary(scheffe_results, infer = c(TRUE, TRUE), level = 0.95))
+print(summary(scheffe_results, infer = c(TRUE, TRUE), level = 0.95,
+              side = "two-sided"))
 
 cat("\nQuestion 2(h): Durbin-Watson test noted in assignment\n")
 print(durbinWatsonTest(fit_bc))

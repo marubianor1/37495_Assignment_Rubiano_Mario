@@ -1,10 +1,14 @@
-# 37495 Assignment Draft
+# 37495 R Assignment Draft
+
+Student: Mario Rubiano
+
+Student ID: 24900627
 
 ## Question 1
 
-An appropriate design is a randomised complete block design. The response variable is the yield of the chemical process, measured in the yield units used by the plant, for example grams, kilograms, percent yield, or another specified production yield unit. The experimental factor is the chemical input, with five treatment levels corresponding to the five chemicals. The blocking factor is technician, with three blocks corresponding to the three technicians.
+An appropriate design for this situation is a randomised complete block design. The response variable is the yield of the chemical process. This yield must be measured in the units used by the plant, for example grams, kilograms, or percent yield. The experimental factor is the chemical input, with five treatment levels because there are five chemicals. The blocking factor is technician, with three blocks because there are three technicians.
 
-There are 15 experimental units in total: each technician should run one observation for each of the five chemical inputs. Within each technician block, randomly allocate the five chemicals to the five experimental units/runs handled by that technician. This gives three observations per chemical and controls for systematic differences among technicians.
+There are 15 experimental units in total. Each experimental unit is one individual execution of the chemical process by one specific technician using one specified chemical input. The measurement unit is the physical batch or final product sample where the yield is measured. Within each technician block, the five chemicals should be randomly allocated to the five process runs done by that technician. In this way, each chemical has three observations, and the design controls for differences between technicians.
 
 The statistical model would be
 
@@ -12,7 +16,7 @@ The statistical model would be
 y_ij = mu + tau_i + beta_j + e_ij,
 ```
 
-where `tau_i` is the effect of chemical `i`, `beta_j` is the effect of technician `j`, and `e_ij` is random error.
+where `tau_i` is the effect of chemical `i`, `beta_j` is the effect of technician `j`, and `e_ij` is the random error.
 
 ## Question 2
 
@@ -25,13 +29,13 @@ H0: mu_1 <= 0.78
 H1: mu_1 > 0.78
 ```
 
-The sample mean is 0.831. The test gives `t = 1.6719`, `df = 19`, and `p = 0.05546`. Since `p > 0.05`, there is insufficient evidence at the 5 percent level to conclude that the mean impact strength for production run 1 is greater than 0.78.
+The sample mean is 0.831. The test gives `t = 1.6719`, `df = 19`, and `p = 0.05546`. Since `p > 0.05`, there is not enough evidence at the 5 percent level to conclude that the mean impact strength for production run 1 is greater than 0.78.
 
 ### (b)
 
 Using `set.seed(37495)`, 100000 bootstrap resamples of production run 1 gave a bootstrap mean distribution with mean about 0.8309 and standard deviation about 0.02986. The histogram with the fitted normal density is saved by the R script as `figures/q2b_bootstrap_histogram.png`.
 
-A Shapiro-Wilk test on a random sample of 50 bootstrap means gave `W = 0.96968` and `p = 0.2246`. Since `p > 0.05`, there is no evidence against normality for the sampled bootstrap means. Together with the histogram, the bootstrap distribution is approximately normal.
+A Shapiro-Wilk test on a random sample of 50 bootstrap means gave `W = 0.96968` and `p = 0.2246`. Since `p > 0.05`, the test does not show evidence against normality for the sampled bootstrap means. Together with the histogram, this suggests that the bootstrap distribution is approximately normal.
 
 ### (c)
 
@@ -43,11 +47,11 @@ run          4  2.791  0.6978   61.33 <2e-16
 Residuals   95  1.081  0.0114
 ```
 
-Since `p < 0.05`, reject the null hypothesis that all production run means are equal. There is strong evidence that mean impact strength varies with production run.
+Since `p < 0.05`, the null hypothesis that all production run means are equal is rejected. This result shows strong evidence that the mean impact strength changes with production run.
 
 ### (d)
 
-For the original ANOVA residuals, Shapiro-Wilk gave `W = 0.97714`, `p = 0.07935`, so normality is not rejected at the 5 percent level. Levene's test with median centre gave `F = 2.9995`, `p = 0.02227`, so constant variance is rejected at the 5 percent level.
+For the original ANOVA residuals, the normality tests were Shapiro-Wilk `W = 0.97714`, `p = 0.07935`, Cramer-von Mises `W = 0.058549`, `p = 0.3919`, and Anderson-Darling `A = 0.43981`, `p = 0.2865`. All three p-values are greater than 0.05, so normality is not rejected at the 5 percent level. The modified Brown-Forsythe Levene test from `lawstat` gave test statistic `3.2344`, `p = 0.01579`, so the constant variance assumption is rejected at the 5 percent level.
 
 ### (e)
 
@@ -57,10 +61,10 @@ Using `boxcox` from the `MASS` package, the optimal Box-Cox parameter was approx
 lambda = 0.245409
 ```
 
-The transformed response used in the script is
+The transformed response used in the script is computed using `DescTools::BoxCox`:
 
 ```text
-strength_bc = (strength^lambda - 1) / lambda
+strength_bc = BoxCox(strength, lambda)
 ```
 
 ### (f)
@@ -73,7 +77,7 @@ run          4  4.306  1.0765   66.75 <2e-16
 Residuals   95  1.532  0.0161
 ```
 
-Shapiro-Wilk for transformed residuals gave `W = 0.97188`, `p = 0.03082`, so normality is rejected at the 5 percent level. Levene's test gave `F = 1.2694`, `p = 0.2875`, so the constant variance assumption is not rejected after transformation.
+For the transformed residuals, Shapiro-Wilk gave `W = 0.97188`, `p = 0.03082`, Cramer-von Mises gave `W = 0.030456`, `p = 0.8391`, and Anderson-Darling gave `A = 0.2938`, `p = 0.594`. Shapiro-Wilk rejects normality at the 5 percent level, but the Cramer-von Mises and Anderson-Darling tests do not reject it. The modified Brown-Forsythe Levene test gave test statistic `1.3594`, `p = 0.2544`, so the constant variance assumption is not rejected after the transformation.
 
 ### (g)
 
@@ -86,11 +90,11 @@ run1_vs_run3               0.213 0.0402 95  0.09892    0.328   5.310 <0.0001
 avg_run124_vs_avg_run35    0.388 0.0259 95  0.31425    0.462  14.969 <0.0001
 ```
 
-At the 5 percent level, contrast (i) is not significant, while contrasts (ii) and (iii) are significant.
+At the 5 percent level, contrast (i) is not significant. In contrast, contrasts (ii) and (iii) are significant.
 
 ### (h)
 
-The apparent autocorrelation pattern occurs because the observations were entered in sorted order within each production run, not in random experimental order. In the data table, each run's 20 strengths are listed from small to large before moving to the next run. The residuals therefore inherit a visible sequence pattern from the ordering of the data. The Durbin-Watson result is responding to the artificial ordering in the table, not necessarily to time-based autocorrelation in the experimental process.
+The apparent autocorrelation pattern occurs because the observations were entered in sorted order within each production run, and not in the random experimental order. In the data table, the 20 strength values for each run are listed from small to large before moving to the next run. This creates a clear pattern in the residuals when they are plotted by observation number. Therefore, the Durbin-Watson result is mainly responding to the artificial order in the table, not necessarily to real time-based autocorrelation in the process.
 
 ### (i)
 
@@ -162,7 +166,7 @@ The least squares criterion is
 S(mu, tau) = sum_i sum_j (y_ij - mu - tau_i)^2.
 ```
 
-Using a Lagrange multiplier for the constraint, minimise
+Using a Lagrange multiplier `gamma` for the constraint, minimise
 
 ```text
 L = sum_i sum_j (y_ij - mu - tau_i)^2 + 2 gamma sum_i tau_i.

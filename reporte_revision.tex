@@ -1,0 +1,79 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+
+\titleformat{\section}{\large\bfseries\color{blue!70!black}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+\title{Reporte de Revisi\'on y Feedback de Asignaci\'on \\ \large 37495 Statistical Design and Models for Evaluation Studies}
+\author{Mario Rubiano Rojas}
+\date{18 de abril de 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Resumen de Integridad y Correctitud}
+Tras la revisi\'on exhaustiva del documento \textit{37495\_Assignment\_Rubiano\_Mario.docx} y el contraste con el feedback externo, se concluye que el trabajo es estad\'isticamente s\'olido.
+
+\begin{itemize}
+    \item \textbf{Pregunta 1:} El dise\~no RCBD es el adecuado. Se recomienda precisar la diferencia entre unidad experimental y de medici\'on (ver Secci\'on 3).
+    \item \textbf{Pregunta 2:} Los an\'alisis de normalidad, homocedasticidad (Levene) y la transformaci\'on de Box-Cox est\'an perfectamente ejecutados siguiendo el flujo del Lab 3. Los resultados num\'ericos y las conclusiones del ANOVA son coherentes.
+    \item \textbf{Pregunta 3:} Se identific\'o un error de integridad (truncamiento de f\'ormulas) que debe ser corregido utilizando el desarrollo proporcionado en este reporte.
+\end{itemize}
+
+\section{Validaci\'on de Funciones de R}
+Es imperativo desestimar la duda sobre el uso de las funciones \texttt{emmeans} y \texttt{contrast}. Aunque herramientas externas sugirieron que no formaban parte de los laboratorios, la validaci\'on directa confirma:
+
+\begin{itemize}
+    \item \textbf{Lab 4 (Soluciones):} Utiliza expl\'icitamente \texttt{emmeans(fit.Q2, "treatment")} y \texttt{contrast(..., adjust="scheffe")}.
+    \item \textbf{Veredicto:} No se requiere una justificaci\'on metodol\'ogica adicional; el c\'odigo se alinea estrictamente con el material de clase.
+\end{itemize}
+
+\section{Observaciones de Mejora}
+
+\subsection{Pregunta 1: Refinamiento de Definiciones}
+Para fortalecer el dise\~no experimental, se sugiere modificar la descripci\'on de las unidades:
+\textit{``Existen 15 unidades experimentales: la ejecuci\'on individual del proceso realizada por un t\'ecnico espec\'ifico usando un qu\'imico determinado. La unidad de medici\'on es el lote f\'isico o muestra del producto final de la cual se obtiene el rendimiento (yield).''}
+
+\subsection{Pregunta 3: Derivaci\'on de M\'inimos Cuadrados (Corregida)}
+Este apartado debe reemplazar el texto truncado en el documento de entrega:
+
+\textbf{(a) Normal Equations and Estimates} \\
+Model: $y_{ij} = \mu + \tau_i + \epsilon_{ij}$ with $\sum_{i=1}^a \tau_i = 0$. Using Lagrange multiplier $\gamma$:
+\[
+L = \sum_{i=1}^a \sum_{j=1}^n (y_{ij} - \mu - \tau_i)^2 + 2\gamma \sum_{i=1}^a \tau_i
+\]
+
+Deriving w.r.t. $\mu$:
+\[
+\frac{\partial L}{\partial \mu} = -2 \sum_{i,j} (y_{ij} - \mu - \tau_i) = 0 \implies \sum y_{ij} - an\mu - n\sum \tau_i = 0
+\]
+Since $\sum \tau_i = 0$, then $y_{..} = an\mu \implies \hat{\mu} = \bar{y}_{..}$.
+
+Deriving w.r.t. $\tau_i$:
+\[
+\frac{\partial L}{\partial \tau_i} = -2 \sum_{j} (y_{ij} - \mu - \tau_i) + 2\gamma = 0 \implies y_{i.} - n\mu - n\tau_i + \gamma = 0
+\]
+Summing over $i$ shows that $\gamma = 0$. Substituting back:
+\[
+y_{i.} - n\bar{y}_{..} - n\tau_i = 0 \implies \hat{\tau}_i = \bar{y}_{i.} - \bar{y}_{..}
+\]
+
+\textbf{(b) Variance of Residuals} \\
+The residual is $\hat{e}_{ij} = y_{ij} - \bar{y}_{i.}$.
+\[
+\text{Var}(\hat{e}_{ij}) = \text{Var}(y_{ij}) + \text{Var}(\bar{y}_{i.}) - 2\text{Cov}(y_{ij}, \bar{y}_{i.})
+\]
+\[
+\text{Var}(\hat{e}_{ij}) = \sigma^2 + \frac{\sigma^2}{n} - 2\left(\frac{\sigma^2}{n}\right) = \sigma^2 \left( 1 - \frac{1}{n} \right)
+\]
+
+\end{document}
